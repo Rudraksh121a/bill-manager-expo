@@ -50,22 +50,6 @@ npx expo start
 2. Each expense entry is stored locally.
 3. Users can view analytics based on month or category.
 
-## Roadmap
-
-- [ ] Add recurring bill reminders
-- [ ] Export data to CSV or PDF
-- [ ] Cloud sync (optional)
-- [ ] Custom categories and tags
-- [ ] Dark mode support
-
-## Contributing
-
-Contributions are welcome! Please open issues or submit pull requests for new features, bug fixes, or improvements.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
-
 ## Acknowledgements
 
 - [Expo](https://expo.dev/)
