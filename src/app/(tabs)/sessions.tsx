@@ -36,7 +36,9 @@ export default function SessionsScreen() {
     Record<string, { count: number; total: number }>
   >({});
   const [loading, setLoading] = useState(true);
-  const [switchingSessionId, setSwitchingSessionId] = useState<string | null>(null);
+  const [switchingSessionId, setSwitchingSessionId] = useState<string | null>(
+    null
+  );
   const [modalVisible, setModalVisible] = useState(false);
   const [newSessionName, setNewSessionName] = useState("");
   const [newSessionDescription, setNewSessionDescription] = useState("");
@@ -236,7 +238,10 @@ export default function SessionsScreen() {
                     )}
                     {switchingSessionId === session.id && (
                       <View style={styles.switchingIndicator}>
-                        <ActivityIndicator size="small" color={COLORS.primary} />
+                        <ActivityIndicator
+                          size="small"
+                          color={COLORS.primary}
+                        />
                         <Text style={styles.switchingText}>Switching...</Text>
                       </View>
                     )}
@@ -275,10 +280,14 @@ export default function SessionsScreen() {
                     <Text style={styles.statLabel}>Created</Text>
                   </View>
                 </View>
-                
+
                 {!session.isActive && switchingSessionId !== session.id && (
                   <View style={styles.switchPrompt}>
-                    <Ionicons name="hand-left" size={14} color={COLORS.primary} />
+                    <Ionicons
+                      name="hand-left"
+                      size={14}
+                      color={COLORS.primary}
+                    />
                     <Text style={styles.switchPromptText}>
                       Tap to switch & go to Home
                     </Text>

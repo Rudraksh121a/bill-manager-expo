@@ -38,6 +38,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   const [loading, setLoading] = useState(true);
   const [switching, setSwitching] = useState<string | null>(null);
   const [billCount, setBillCount] = useState(0);
+  const [billTotal, setBillTotal] = useState(0);
   const scaleAnim = new Animated.Value(1);
 
   useEffect(() => {
@@ -74,18 +75,22 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
       setSessions(allSessions);
       setActiveSessionState(currentActive);
 
-      // Load bill count for active session
+      // Load bill count and total for active session
       if (currentActive) {
         try {
           const { getAllBills } = await import("../utils/db");
           const bills = await getAllBills();
           setBillCount(bills.length);
+          const total = bills.reduce((sum, bill) => sum + bill.amount, 0);
+          setBillTotal(total);
         } catch (error) {
-          console.log("Could not load bill count:", error);
+          console.log("Could not load bill data:", error);
           setBillCount(0);
+          setBillTotal(0);
         }
       } else {
         setBillCount(0);
+        setBillTotal(0);
       }
 
       // Notify parent component about session changes
@@ -209,7 +214,8 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
               {activeSession?.name || "No Session"}
             </Text>
             <Text style={styles.billCountText}>
-              {billCount} {billCount === 1 ? "bill" : "bills"}
+              {billCount} {billCount === 1 ? "bill" : "bills"} • ₹
+              {billTotal.toFixed(2)}
             </Text>
           </View>
         </View>
@@ -270,7 +276,8 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                   </Text>
                   <Text style={styles.currentSessionSubtext}>
                     Active Session • {billCount}{" "}
-                    {billCount === 1 ? "bill" : "bills"}
+                    {billCount === 1 ? "bill" : "bills"} • ₹
+                    {billTotal.toFixed(2)}
                   </Text>
                   {activeSession?.description && (
                     <Text style={styles.currentSessionDescription}>
@@ -280,8 +287,11 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                 </View>
 
                 <View style={styles.sessionActions}>
-                  <View style={styles.billCountDisplay}>
-                    <Text style={styles.billCountNumber}>{billCount}</Text>
+                  <View style={styles.billTotalDisplay}>
+                    <Text style={styles.billTotalAmount}>
+                      ₹{billTotal.toFixed(0)}
+                    </Text>
+                    <Text style={styles.billTotalLabel}>Total</Text>
                   </View>
                 </View>
               </View>
@@ -626,6 +636,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: COLORS.primary,
+  },
+  billTotalDisplay: {
+    minWidth: 60,
+    height: 50,
+    backgroundColor: COLORS.primary + "15",
+    borderRadius: 25,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: COLORS.primary + "30",
+    paddingHorizontal: SPACING.sm,
+  },
+  billTotalAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: COLORS.primary,
+  },
+  billTotalLabel: {
+    fontSize: 10,
+    fontWeight: "500",
+    color: COLORS.primary,
+    marginTop: 2,
   },
   sessionsSection: {
     flex: 1,
