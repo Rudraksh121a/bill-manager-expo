@@ -28,7 +28,6 @@ class SessionEventEmitter {
         try {
           listener();
         } catch (error) {
-          console.error('Error in session change listener:', error);
         }
       });
       this.debounceTimeout = null;

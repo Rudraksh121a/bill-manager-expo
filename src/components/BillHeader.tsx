@@ -1,7 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SPACING, RADIUS } from '../utils/theme';
+import React from "react";
+import { View, Text, StyleSheet, TextInput, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  COLORS,
+  SPACING,
+  RADIUS,
+  TYPOGRAPHY,
+  SHADOWS,
+  ICON_SIZES,
+} from "../utils/theme";
 
 interface BillHeaderProps {
   query: string;
@@ -20,9 +27,21 @@ export const BillHeader: React.FC<BillHeaderProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      {/* Search Input */}
+      <View style={styles.header}>
+        <Text style={styles.title}>My Bills</Text>
+        <Text style={styles.countText}>
+          {itemCount} bill{itemCount !== 1 ? "s" : ""}
+        </Text>
+      </View>
+
+      {/* Modern Search Input */}
       <View style={styles.searchWrapper}>
-        <Ionicons name="search" size={20} color={COLORS.textTertiary} style={styles.icon} />
+        <Ionicons
+          name="search"
+          size={ICON_SIZES.md}
+          color={COLORS.textTertiary}
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.input}
           value={query}
@@ -32,16 +51,15 @@ export const BillHeader: React.FC<BillHeaderProps> = ({
           editable={!loading}
         />
         {query.length > 0 && (
-          <Pressable onPress={onClearQuery}>
-            <Ionicons name="close-circle" size={20} color={COLORS.textSecondary} />
+          <Pressable onPress={onClearQuery} style={styles.clearButton}>
+            <Ionicons
+              name="close-circle"
+              size={ICON_SIZES.md}
+              color={COLORS.textSecondary}
+            />
           </Pressable>
         )}
       </View>
-
-      {/* Status / Count */}
-      <Text style={styles.countText}>
-        {itemCount} bill{itemCount !== 1 ? 's' : ''}
-      </Text>
     </View>
   );
 };
@@ -51,33 +69,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingTop: SPACING.md,
     paddingBottom: SPACING.md,
-    backgroundColor: 'transparent',   // ✅ No header block bg
+    backgroundColor: COLORS.cardBg,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SPACING.md,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: COLORS.textPrimary,
   },
   searchWrapper: {
-    height: 46,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.bgLight,
-    borderRadius: RADIUS.xl,
-    paddingHorizontal: SPACING.md,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.bg,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: COLORS.borderLight,
+    borderColor: COLORS.border,
+    minHeight: 40,
+  },
+  searchIcon: {
+    marginRight: SPACING.sm,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: COLORS.dark,
-    fontWeight: '500',
-    paddingLeft: SPACING.sm,
+    fontSize: 15,
+    color: COLORS.textPrimary,
+    paddingVertical: 2,
   },
-  icon: {
-    marginRight: SPACING.xs,
+  clearButton: {
+    padding: 4,
+    marginLeft: SPACING.sm,
   },
   countText: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: SPACING.sm,
-    marginLeft: SPACING.xs,
+    fontSize: 12,
+    color: COLORS.textTertiary,
   },
 });

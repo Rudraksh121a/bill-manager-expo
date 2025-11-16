@@ -1,6 +1,14 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { COLORS, SPACING, RADIUS, SHADOWS, TYPOGRAPHY } from "../utils/theme";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  COLORS,
+  SPACING,
+  RADIUS,
+  SHADOWS,
+  TYPOGRAPHY,
+  ICON_SIZES,
+} from "../utils/theme";
 import { Bill } from "../utils/db";
 
 interface BillCardProps {
@@ -10,31 +18,47 @@ interface BillCardProps {
 
 export const BillCard: React.FC<BillCardProps> = ({ bill, onDelete }) => {
   return (
-    <View style={styles.cardWrap}>
-      <View style={styles.cardAccent} />
-      <View style={styles.cardContent}>
-        <View style={styles.header}>
-          <View style={styles.titleSection}>
-            <Text style={styles.billName} numberOfLines={2}>
-              {bill.billName}
-            </Text>
-            <Text style={styles.date}>{bill.date}</Text>
-          </View>
-          <Text style={styles.amount}>₹{bill.amount.toFixed(2)}</Text>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.iconContainer}>
+          <Ionicons
+            name="receipt-outline"
+            size={ICON_SIZES.lg}
+            color={COLORS.primary}
+          />
         </View>
 
-        {bill.description ? (
-          <View style={styles.descriptionSection}>
-            <Text style={styles.description} numberOfLines={2}>
-              {bill.description}
-            </Text>
-          </View>
-        ) : null}
+        <View style={styles.titleSection}>
+          <Text style={styles.billName} numberOfLines={2}>
+            {bill.billName}
+          </Text>
+          <Text style={styles.date}>{bill.date}</Text>
+        </View>
 
+        <View style={styles.amountContainer}>
+          <Text style={styles.currency}>₹</Text>
+          <Text style={styles.amount}>{bill.amount.toFixed(2)}</Text>
+        </View>
+      </View>
+
+      {bill.description ? (
+        <View style={styles.descriptionSection}>
+          <Text style={styles.description} numberOfLines={2}>
+            {bill.description}
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={styles.actions}>
         <TouchableOpacity
           style={styles.deleteBtn}
           onPress={() => onDelete(bill.id, bill.billName)}
         >
+          <Ionicons
+            name="trash-outline"
+            size={ICON_SIZES.sm}
+            color={COLORS.danger}
+          />
           <Text style={styles.deleteBtnText}>Delete</Text>
         </TouchableOpacity>
       </View>
@@ -43,84 +67,91 @@ export const BillCard: React.FC<BillCardProps> = ({ bill, onDelete }) => {
 };
 
 const styles = StyleSheet.create({
-  cardWrap: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    marginBottom: SPACING.lg,
-  },
-  cardAccent: {
-    width: 5,
-    borderTopLeftRadius: RADIUS.lg,
-    borderBottomLeftRadius: RADIUS.lg,
-    backgroundColor: COLORS.primary,
-    marginRight: 0,
-  },
-  cardContent: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-    padding: SPACING.lg,
-    borderTopRightRadius: RADIUS.lg,
-    borderBottomRightRadius: RADIUS.lg,
-    borderTopLeftRadius: 0,
-    borderBottomLeftRadius: 0,
-    ...SHADOWS.md,
+  container: {
+    backgroundColor: COLORS.cardBg,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    ...SHADOWS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: COLORS.primaryBg,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
   },
   titleSection: {
     flex: 1,
-    marginRight: SPACING.md,
+    marginRight: 10,
   },
   billName: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: COLORS.dark,
-    marginBottom: SPACING.sm,
+    fontSize: 15,
+    fontWeight: "600",
+    color: COLORS.textPrimary,
+    marginBottom: 2,
   },
   date: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textTertiary,
-    fontWeight: "500",
-    marginTop: SPACING.xs,
+  },
+  amountContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  currency: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginRight: 2,
   },
   amount: {
-    fontSize: 20,
-    fontWeight: "800",
+    fontSize: 16,
+    fontWeight: "600",
     color: COLORS.primary,
-    marginTop: SPACING.sm,
   },
   descriptionSection: {
-    marginTop: SPACING.md,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
+    marginBottom: 10,
+    padding: 8,
     backgroundColor: COLORS.bgLight,
-    borderRadius: RADIUS.md,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.accent2,
+    borderRadius: 6,
+    borderLeftWidth: 2,
+    borderLeftColor: COLORS.accent,
   },
   description: {
-    fontSize: 14,
-    color: COLORS.darkGray,
+    fontSize: 13,
+    color: COLORS.textSecondary,
     fontStyle: "italic",
-    lineHeight: 20,
+    lineHeight: 18,
+  },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 4,
   },
   deleteBtn: {
-    marginTop: SPACING.lg,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.lg,
-    backgroundColor: "#fee2e2",
-    borderRadius: RADIUS.md,
-    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    backgroundColor: COLORS.dangerBg,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: "#fca5a5",
+    borderColor: COLORS.danger + "30",
   },
   deleteBtnText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: COLORS.danger,
+    marginLeft: 4,
   },
 });
 

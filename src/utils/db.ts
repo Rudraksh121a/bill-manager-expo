@@ -28,14 +28,10 @@ export async function initDB() {
     if (!db && !initPromise) {
         initPromise = (async () => {
             try {
-                console.log('Opening database: MybillsDB');
                 db = await SQLite.openDatabaseAsync('MybillsDB');
-                console.log('Database opened successfully');
                 await createTableIfNotExists();
-                console.log('Database initialization completed');
                 return db;
             } catch (error) {
-                console.error('Failed to initialize database:', error);
                 db = null;
                 initPromise = null;
                 throw error;
@@ -57,8 +53,6 @@ const DB_VERSION = 2;
 async function createTableIfNotExists() {
     if (!db) return;
     try {
-        console.log('Starting database initialization...');
-        
         // First, always create sessions table (if not exists)
         await db.execAsync(`
             CREATE TABLE IF NOT EXISTS sessions (
@@ -69,26 +63,19 @@ async function createTableIfNotExists() {
                 isActive INTEGER NOT NULL DEFAULT 0
             );
         `);
-        console.log('Sessions table ensured');
         
         // Check if bills table exists (for existing installations)
         const tableExists = await db.getFirstAsync(`SELECT name FROM sqlite_master WHERE type='table' AND name='bills';`);
-        console.log('Bills table exists:', !!tableExists);
         
         if (tableExists) {
             // Check if sessionId column exists
             const tableInfo = await db.getAllAsync(`PRAGMA table_info(bills);`);
             const hasSessionId = tableInfo.some((column: any) => column.name === 'sessionId');
-            console.log('Bills table has sessionId column:', hasSessionId);
             
             if (!hasSessionId) {
-                console.log('Existing database detected, running migration...');
                 await migrateToVersion2();
-            } else {
-                console.log('Database already migrated');
             }
         } else {
-            console.log('New installation detected, creating bills table...');
             await db.execAsync(`
                 CREATE TABLE bills (
                     id TEXT PRIMARY KEY,
@@ -102,15 +89,12 @@ async function createTableIfNotExists() {
                     FOREIGN KEY (sessionId) REFERENCES sessions (id)
                 );
             `);
-            console.log('Bills table created');
         }
         
         // Create default session if no sessions exist
         await createDefaultSessionIfNeeded();
         
-        console.log('Database initialization completed successfully!');
     } catch (err) {
-        console.error('Error creating tables:', err);
         throw err;
     }
 }
@@ -151,7 +135,6 @@ async function migrateToVersion2() {
     if (!db) return;
     
     try {
-        console.log('Starting migration to version 2...');
         
         // Sessions table should already exist from createTableIfNotExists
         
@@ -161,7 +144,6 @@ async function migrateToVersion2() {
         
         if (existingSessions.length === 0) {
             defaultSessionId = 'default-session-migration-' + Date.now();
-            console.log('Creating default session for migration:', defaultSessionId);
             
             await db.runAsync(
                 `INSERT INTO sessions (id, name, description, createdAt, isActive) VALUES (?, ?, ?, ?, ?);`,
@@ -169,30 +151,23 @@ async function migrateToVersion2() {
             );
         } else {
             defaultSessionId = existingSessions[0].id;
-            console.log('Using existing session for migration:', defaultSessionId);
         }
         
         // Add sessionId column to bills table
-        console.log('Adding sessionId column to bills table...');
         try {
             await db.execAsync(`ALTER TABLE bills ADD COLUMN sessionId TEXT;`);
-            console.log('SessionId column added successfully');
         } catch (alterError: any) {
             if (alterError.message?.includes('duplicate column name')) {
-                console.log('SessionId column already exists, continuing...');
+                // Column already exists, continue
             } else {
                 throw alterError;
             }
         }
         
         // Update all existing bills to use the default session
-        console.log('Updating existing bills with default session ID...');
         const updateResult = await db.runAsync(`UPDATE bills SET sessionId = ? WHERE sessionId IS NULL OR sessionId = '';`, [defaultSessionId]);
-        console.log('Updated bills count:', updateResult.changes);
         
-        console.log('Migration to version 2 completed successfully!');
     } catch (error) {
-        console.error('Migration failed:', error);
         throw error;
     }
 }
@@ -203,7 +178,6 @@ async function createDefaultSessionIfNeeded() {
     try {
         const sessionCount = await db.getFirstAsync<{ count: number }>('SELECT COUNT(*) as count FROM sessions;');
         if (sessionCount?.count === 0) {
-            console.log('Creating default session for new installation...');
             const defaultSession: Session = {
                 id: 'default-session-' + Date.now(),
                 name: 'Personal Bills',
@@ -217,7 +191,6 @@ async function createDefaultSessionIfNeeded() {
             );
         }
     } catch (err) {
-        console.error('Error creating default session:', err);
     }
 }
 
@@ -238,7 +211,6 @@ export async function addSession(session: Session): Promise<boolean> {
         
         return true;
     } catch (err) {
-        console.error('Error adding session:', err);
         return false;
     }
 }
@@ -262,7 +234,6 @@ export async function getAllSessions(): Promise<Session[]> {
             isActive: session.isActive === 1
         })) || [];
     } catch (err) {
-        console.error('Error fetching sessions:', err);
         return [];
     }
 }
@@ -289,7 +260,6 @@ export async function getActiveSession(): Promise<Session | null> {
         }
         return null;
     } catch (err) {
-        console.error('Error fetching active session:', err);
         return null;
     }
 }
@@ -309,7 +279,6 @@ export async function setActiveSession(sessionId: string): Promise<boolean> {
         
         return true;
     } catch (err) {
-        console.error('Error setting active session:', err);
         return false;
     }
 }
@@ -329,7 +298,6 @@ export async function deleteSession(sessionId: string): Promise<boolean> {
         
         return true;
     } catch (err) {
-        console.error('Error deleting session:', err);
         return false;
     }
 }
@@ -340,59 +308,43 @@ export async function deleteSession(sessionId: string): Promise<boolean> {
 export async function getAllBills(): Promise<Bill[]> {
     if (!db) await initDB();
     try {
-        console.log('Getting all bills...');
         
         // First check if the sessionId column exists
         const tableInfo = await db!.getAllAsync(`PRAGMA table_info(bills);`);
         const hasSessionId = tableInfo.some((column: any) => column.name === 'sessionId');
-        console.log('Bills table columns:', tableInfo.map((col: any) => col.name));
-        console.log('Has sessionId column:', hasSessionId);
         
         if (!hasSessionId) {
-            console.log('SessionId column missing, running migration...');
             await migrateToVersion2();
             
             // After migration, get the active session and query again
             const activeSession = await getActiveSession();
-            console.log('Active session after migration:', activeSession);
             
             if (!activeSession) {
-                console.log('No active session found after migration, returning empty array');
                 return [];
             }
             
-            console.log('Querying bills for session after migration:', activeSession.id);
             const result = await db!.getAllAsync<Bill>('SELECT * FROM bills WHERE sessionId = ? ORDER BY date DESC;', [activeSession.id]);
-            console.log('Found bills after migration:', result?.length || 0);
             return result || [];
         }
         
         const activeSession = await getActiveSession();
-        console.log('Active session:', activeSession);
         
         if (!activeSession) {
-            console.log('No active session found, returning empty array');
             return [];
         }
         
-        console.log('Querying bills for session:', activeSession.id);
         const result = await db!.getAllAsync<Bill>('SELECT * FROM bills WHERE sessionId = ? ORDER BY date DESC;', [activeSession.id]);
-        console.log('Found bills:', result?.length || 0);
         return result || [];
     } catch (err) {
-        console.error('Error fetching bills:', err);
         // If there's still an error, try to get bills without sessionId filter (for old databases)
         try {
-            console.log('Falling back to getting all bills without session filter...');
             const result = await db!.getAllAsync<any>('SELECT * FROM bills ORDER BY date DESC;');
-            console.log('Found bills without session filter:', result?.length || 0);
             // Add a default sessionId to the results
             return result?.map(bill => ({
                 ...bill,
                 sessionId: 'legacy-session'
             })) || [];
         } catch (fallbackErr) {
-            console.error('Fallback query also failed:', fallbackErr);
             return [];
         }
     }
@@ -405,7 +357,6 @@ export async function getBillsBySession(sessionId: string): Promise<Bill[]> {
         const result = await db!.getAllAsync<Bill>('SELECT * FROM bills WHERE sessionId = ? ORDER BY date DESC;', [sessionId]);
         return result || [];
     } catch (err) {
-        console.error('Error fetching bills by session:', err);
         return [];
     }
 }
@@ -417,7 +368,6 @@ export async function getBillById(id: string): Promise<Bill | null> {
         const result = await db!.getFirstAsync<Bill>('SELECT * FROM bills WHERE id = ?;', [id]);
         return result || null;
     } catch (err) {
-        console.error('Error fetching bill:', err);
         return null;
     }
 }
@@ -430,7 +380,6 @@ export async function addBill(bill: Omit<Bill, 'sessionId'>): Promise<boolean> {
         
         // If no active session, try to get any session or create one
         if (!activeSession) {
-            console.log('No active session found, looking for any available session...');
             const allSessions = await getAllSessions();
             if (allSessions.length > 0) {
                 // Set first session as active
@@ -438,7 +387,6 @@ export async function addBill(bill: Omit<Bill, 'sessionId'>): Promise<boolean> {
                 activeSession = allSessions[0];
             } else {
                 // Create a default session
-                console.log('No sessions found, creating default session...');
                 const defaultSession: Session = {
                     id: 'emergency-session-' + Date.now(),
                     name: 'Personal Bills',
@@ -465,7 +413,6 @@ export async function addBill(bill: Omit<Bill, 'sessionId'>): Promise<boolean> {
         
         return true;
     } catch (err) {
-        console.error('Error adding bill:', err);
         return false;
     }
 }
@@ -485,7 +432,6 @@ export async function updateBill(bill: Omit<Bill, 'sessionId'>): Promise<boolean
         
         return true;
     } catch (err) {
-        console.error('Error updating bill:', err);
         return false;
     }
 }
@@ -502,7 +448,6 @@ export async function deleteBill(id: string): Promise<boolean> {
         
         return true;
     } catch (err) {
-        console.error('Error deleting bill:', err);
         return false;
     }
 }
@@ -520,9 +465,7 @@ export async function syncBillsFromJSON(billsData: Omit<Bill, 'sessionId'>[]): P
         for (const bill of billsData) {
             await addBill(bill);
         }
-        console.log(`Synced ${billsData.length} bills to database for session ${activeSession.name}`);
     } catch (err) {
-        console.error('Error syncing bills:', err);
     }
 }
 
@@ -539,7 +482,6 @@ export async function getBillsByDateRange(startDate: string, endDate: string): P
         );
         return result || [];
     } catch (err) {
-        console.error('Error fetching bills by date range:', err);
         return [];
     }
 }
@@ -557,7 +499,6 @@ export async function getBillsByStatus(status: string): Promise<Bill[]> {
         );
         return result || [];
     } catch (err) {
-        console.error('Error fetching bills by status:', err);
         return [];
     }
 }
@@ -575,7 +516,6 @@ export async function getTotalSpending(): Promise<number> {
         );
         return result?.total || 0;
     } catch (err) {
-        console.error('Error calculating total:', err);
         return 0;
     }
 }
@@ -594,7 +534,6 @@ export async function searchBills(query: string): Promise<Bill[]> {
         );
         return result || [];
     } catch (err) {
-        console.error('Error searching bills:', err);
         return [];
     }
 }

@@ -27,6 +27,7 @@ import {
 } from "../../utils/db";
 import { sessionEvents } from "../../utils/sessionEvents";
 import { Toast } from "../../utils/toast";
+import { showDoubleConfirmation } from "../../utils/confirmationHelpers";
 
 export default function SessionsScreen() {
   const router = useRouter();
@@ -78,7 +79,6 @@ export default function SessionsScreen() {
       }
       setSessionStats(stats);
     } catch (error) {
-      console.error("Error loading sessions data:", error);
       Alert.alert("Error", "Failed to load sessions");
     } finally {
       setLoading(false);
@@ -102,7 +102,6 @@ export default function SessionsScreen() {
         Toast.error("Failed to switch session");
       }
     } catch (error) {
-      console.error("Error switching session:", error);
       Toast.error("Failed to switch session");
     } finally {
       setSwitchingSessionId(null);
@@ -135,7 +134,6 @@ export default function SessionsScreen() {
         Alert.alert("Error", "Failed to create session");
       }
     } catch (error) {
-      console.error("Error creating session:", error);
       Alert.alert("Error", "Failed to create session");
     }
   };
@@ -146,44 +144,36 @@ export default function SessionsScreen() {
       return;
     }
 
-    Alert.alert(
-      "Delete Session",
-      `Are you sure you want to delete "${
+    showDoubleConfirmation({
+      title: "Delete Session",
+      message: `Are you sure you want to delete "${
         session.name
       }"?\n\nThis will permanently delete all ${
         sessionStats[session.id]?.count || 0
       } bills in this session.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const success = await deleteSession(session.id);
-              if (success) {
-                // If we deleted the active session, switch to the first available session
-                if (session.isActive && sessions.length > 1) {
-                  const remainingSessions = sessions.filter(
-                    (s) => s.id !== session.id
-                  );
-                  if (remainingSessions.length > 0) {
-                    await setActiveSession(remainingSessions[0].id);
-                  }
-                }
-                await loadSessionsData();
-                Alert.alert("Success", "Session deleted successfully!");
-              } else {
-                Alert.alert("Error", "Failed to delete session");
+      onConfirm: async () => {
+        try {
+          const success = await deleteSession(session.id);
+          if (success) {
+            // If we deleted the active session, switch to the first available session
+            if (session.isActive && sessions.length > 1) {
+              const remainingSessions = sessions.filter(
+                (s) => s.id !== session.id
+              );
+              if (remainingSessions.length > 0) {
+                await setActiveSession(remainingSessions[0].id);
               }
-            } catch (error) {
-              console.error("Error deleting session:", error);
-              Alert.alert("Error", "Failed to delete session");
             }
-          },
-        },
-      ]
-    );
+            await loadSessionsData();
+            Alert.alert("Success", "Session deleted successfully!");
+          } else {
+            Alert.alert("Error", "Failed to delete session");
+          }
+        } catch (error) {
+          Alert.alert("Error", "Failed to delete session");
+        }
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {
@@ -219,7 +209,7 @@ export default function SessionsScreen() {
                 ]}
                 onPress={() => handleSessionSwitch(session)}
                 disabled={switchingSessionId === session.id || session.isActive}
-                activeOpacity={session.isActive ? 0.5 : 0.8}
+                activeOpacity={0.7}
               >
                 <View style={styles.sessionHeader}>
                   <View style={styles.sessionTitleContainer}>
@@ -363,16 +353,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
     backgroundColor: COLORS.white,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    elevation: 1,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   title: {
     fontSize: 20,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   addButton: {
     backgroundColor: COLORS.primary,
@@ -400,17 +390,19 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
   },
   sessionCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.cardBg,
+    borderRadius: RADIUS.card,
     padding: SPACING.lg,
-    marginBottom: SPACING.md,
-    borderWidth: 2,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
     borderColor: COLORS.border,
-    ...SHADOWS.sm,
+    ...SHADOWS.card,
   },
   activeSessionCard: {
     borderColor: COLORS.primary,
-    backgroundColor: COLORS.primaryLight + "10",
+    borderWidth: 2,
+    backgroundColor: COLORS.primaryBg,
+    ...SHADOWS.cardHover,
   },
   sessionHeader: {
     flexDirection: "row",
@@ -426,14 +418,14 @@ const styles = StyleSheet.create({
   sessionName: {
     fontSize: 18,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginRight: SPACING.sm,
   },
   activeSessionName: {
     color: COLORS.primary,
   },
   activeBadge: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.secondary,
     paddingHorizontal: SPACING.xs,
     paddingVertical: 2,
     borderRadius: RADIUS.sm,
@@ -473,11 +465,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 16,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: COLORS.textTertiary,
     marginTop: 2,
   },
   modalOverlay: {
@@ -502,7 +494,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   closeButton: {
     width: 32,
@@ -523,7 +515,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
     marginTop: SPACING.sm,
   },
@@ -533,7 +525,7 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.md,
     padding: SPACING.sm,
     fontSize: 16,
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     backgroundColor: COLORS.white,
   },
   descriptionInput: {

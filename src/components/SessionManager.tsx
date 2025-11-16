@@ -23,6 +23,7 @@ import {
 import { Toast } from "../utils/toast";
 import { sessionEvents } from "../utils/sessionEvents";
 import { useRouter } from "expo-router";
+import { showDoubleConfirmation } from "../utils/confirmationHelpers";
 
 interface SessionManagerProps {
   onSessionChange?: () => void;
@@ -84,7 +85,6 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           const total = bills.reduce((sum, bill) => sum + bill.amount, 0);
           setBillTotal(total);
         } catch (error) {
-          console.log("Could not load bill data:", error);
           setBillCount(0);
           setBillTotal(0);
         }
@@ -98,7 +98,6 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         onSessionChange();
       }
     } catch (error) {
-      console.error("Error loading sessions:", error);
       // Don't show alert for loading errors, just log them
     } finally {
       setLoading(false);
@@ -135,7 +134,6 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         Toast.error("Failed to switch session");
       }
     } catch (error) {
-      console.error("Error switching session:", error);
       Toast.error("Failed to switch session");
     } finally {
       setSwitching(null);
@@ -148,43 +146,33 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
       return;
     }
 
-    Alert.alert(
-      "Delete Session",
-      `Are you sure you want to delete "${session.name}"?\n\nThis will permanently delete all bills in this session.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              const success = await deleteSession(session.id);
-              if (success) {
-                // If we deleted the active session, switch to the first available session
-                if (session.isActive && sessions.length > 1) {
-                  const remainingSessions = sessions.filter(
-                    (s) => s.id !== session.id
-                  );
-                  if (remainingSessions.length > 0) {
-                    await setActiveSession(remainingSessions[0].id);
-                  }
-                }
-
-                Toast.success(
-                  `"${session.name}" session deleted successfully!`
-                );
-                // Note: loadSessions will be called automatically via the event system
-              } else {
-                Toast.error("Failed to delete session");
+    showDoubleConfirmation({
+      title: "Delete Session",
+      message: `Are you sure you want to delete "${session.name}"?\n\nThis will permanently delete all bills in this session.`,
+      onConfirm: async () => {
+        try {
+          const success = await deleteSession(session.id);
+          if (success) {
+            // If we deleted the active session, switch to the first available session
+            if (session.isActive && sessions.length > 1) {
+              const remainingSessions = sessions.filter(
+                (s) => s.id !== session.id
+              );
+              if (remainingSessions.length > 0) {
+                await setActiveSession(remainingSessions[0].id);
               }
-            } catch (error) {
-              console.error("Error deleting session:", error);
-              Toast.error("Failed to delete session");
             }
-          },
-        },
-      ]
-    );
+
+            Toast.success(`"${session.name}" session deleted successfully!`);
+            // Note: loadSessions will be called automatically via the event system
+          } else {
+            Toast.error("Failed to delete session");
+          }
+        } catch (error) {
+          Toast.error("Failed to delete session");
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -472,7 +460,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     marginHorizontal: SPACING.md,
-    ...SHADOWS.md,
+    elevation: 1,
+    shadowColor: COLORS.textPrimaryPrimary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
   },
   activeSessionInfo: {
     flexDirection: "row",
@@ -494,7 +486,7 @@ const styles = StyleSheet.create({
   activeSessionName: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   billCountText: {
     fontSize: 12,
@@ -518,7 +510,11 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     maxHeight: "85%",
     paddingBottom: SPACING.xl,
-    ...SHADOWS.lg,
+    elevation: 3,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
   },
   modalHandle: {
     width: 40,
@@ -555,7 +551,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
   },
   closeButton: {
     padding: SPACING.sm,
@@ -568,7 +564,11 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.primary + "30",
-    ...SHADOWS.md,
+    elevation: 1,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
   },
   currentSessionHeader: {
     flexDirection: "row",
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
     right: -2,
     width: 12,
     height: 12,
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.secondary,
     borderRadius: 6,
     borderWidth: 2,
     borderColor: COLORS.white,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
   currentSessionName: {
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   currentSessionSubtext: {
@@ -672,7 +672,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
   },
   sectionSubtitle: {
@@ -705,7 +705,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-    ...SHADOWS.sm,
+    elevation: 1,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 1,
   },
   activeSessionButton: {
     backgroundColor: COLORS.bgLight,
@@ -745,7 +749,7 @@ const styles = StyleSheet.create({
   sessionName: {
     fontSize: 15,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   activeSessionText: {
@@ -778,12 +782,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-    ...SHADOWS.sm,
+    elevation: 1,
+    shadowColor: COLORS.textPrimary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.02,
+    shadowRadius: 1,
   },
   manageSessionsText: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: 2,
   },
   manageButtonIcon: {

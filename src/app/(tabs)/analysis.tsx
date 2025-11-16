@@ -75,7 +75,6 @@ async function getSessionAnalysis(sessions: Session[]) {
         overallTotal,
       };
     } catch (error) {
-      console.error(`Error loading bills for session ${session.id}:`, error);
       analysis[session.id] = {
         weekTotal: 0,
         monthTotal: 0,
@@ -149,7 +148,6 @@ export default function AnalysisScreen() {
       const analysis = await getSessionAnalysis(allSessions);
       setSessionAnalysis(analysis);
     } catch (err) {
-      console.error("Error loading analysis:", err);
     } finally {
       setLoading(false);
     }
@@ -331,6 +329,7 @@ export default function AnalysisScreen() {
         <TouchableOpacity
           style={[styles.tab, activeTab === "bill" && styles.activeTab]}
           onPress={() => setActiveTab("bill")}
+          activeOpacity={0.7}
         >
           <Text
             style={[
@@ -344,6 +343,7 @@ export default function AnalysisScreen() {
         <TouchableOpacity
           style={[styles.tab, activeTab === "session" && styles.activeTab]}
           onPress={() => setActiveTab("session")}
+          activeOpacity={0.7}
         >
           <Text
             style={[
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: SPACING.xxxl,
+    paddingVertical: SPACING.xxl, // Standard loading padding
   },
   loadingText: {
     marginTop: SPACING.md,
@@ -468,23 +468,25 @@ const styles = StyleSheet.create({
   // Tab Navigation Styles
   tabContainer: {
     flexDirection: "row",
-    backgroundColor: COLORS.white,
-    marginHorizontal: SPACING.md,
-    borderRadius: RADIUS.lg,
+    backgroundColor: COLORS.cardBg,
+    marginHorizontal: SPACING.lg,
+    borderRadius: RADIUS.card,
     padding: SPACING.xs,
-    ...SHADOWS.sm,
-    marginBottom: SPACING.md,
+    ...SHADOWS.card,
+    marginBottom: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   tab: {
     flex: 1,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.md,
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: RADIUS.button,
     alignItems: "center",
   },
   activeTab: {
     backgroundColor: COLORS.primary,
-    ...SHADOWS.sm,
+    ...SHADOWS.button,
   },
   tabText: {
     fontSize: 14,
@@ -513,7 +515,7 @@ const styles = StyleSheet.create({
   combinedStatsTitle: {
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
   },
   combinedStatsSubtitle: {
@@ -551,7 +553,7 @@ const styles = StyleSheet.create({
   noSessionsText: {
     fontSize: 18,
     fontWeight: "600",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
   },
   noSessionsSubtext: {
@@ -571,8 +573,8 @@ const styles = StyleSheet.create({
     borderLeftColor: COLORS.primary + "40",
   },
   activeSessionCard: {
-    borderLeftColor: COLORS.success,
-    backgroundColor: COLORS.success + "05",
+    borderLeftColor: COLORS.secondary,
+    backgroundColor: COLORS.secondary + "05",
   },
   sessionCardHeader: {
     marginBottom: SPACING.lg,
@@ -589,13 +591,13 @@ const styles = StyleSheet.create({
   sessionName: {
     fontSize: 18,
     fontWeight: "700",
-    color: COLORS.text,
+    color: COLORS.textPrimary,
     marginBottom: SPACING.xs,
     flexDirection: "row",
     alignItems: "center",
   },
   activeBadge: {
-    backgroundColor: COLORS.success,
+    backgroundColor: COLORS.secondary,
     borderRadius: 12,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 2,

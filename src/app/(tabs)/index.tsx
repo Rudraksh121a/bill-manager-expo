@@ -8,6 +8,7 @@ import { COLORS, SPACING } from "../../utils/theme";
 import { getAllBills, deleteBill, Bill } from "../../utils/db";
 import { BillHeader } from "../../components/BillHeader";
 import { BillsList } from "../../components/BillsList";
+import { showDoubleConfirmation } from "../../utils/confirmationHelpers";
 import { SessionManager } from "../../components/SessionManager";
 import { sessionEvents } from "../../utils/sessionEvents";
 
@@ -37,7 +38,6 @@ export default function HomeScreen() {
       const dbBills = await getAllBills();
       setBills(dbBills);
     } catch (err) {
-      console.error("Error loading bills:", err);
       Alert.alert("Error", "Failed to load bills");
     } finally {
       setLoading(false);
@@ -45,30 +45,19 @@ export default function HomeScreen() {
   };
 
   const handleDeleteBill = (id: string, billName: string) => {
-    Alert.alert(
-      "Delete Bill",
-      `Are you sure you want to delete "${billName}"?`,
-      [
-        {
-          text: "Cancel",
-          onPress: () => {},
-          style: "cancel",
-        },
-        {
-          text: "Delete",
-          onPress: async () => {
-            const success = await deleteBill(id);
-            if (success) {
-              await loadBills();
-              Alert.alert("Success", "Bill deleted successfully!");
-            } else {
-              Alert.alert("Error", "Failed to delete bill");
-            }
-          },
-          style: "destructive",
-        },
-      ]
-    );
+    showDoubleConfirmation({
+      title: "Delete Bill",
+      message: `Are you sure you want to delete "${billName}"?`,
+      onConfirm: async () => {
+        const success = await deleteBill(id);
+        if (success) {
+          await loadBills();
+          Alert.alert("Success", "Bill deleted successfully!");
+        } else {
+          Alert.alert("Error", "Failed to delete bill");
+        }
+      },
+    });
   };
 
   const filtered = useMemo(() => {
@@ -106,6 +95,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.bgLight,
+    backgroundColor: COLORS.bg,
   },
 });
