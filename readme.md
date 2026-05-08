@@ -4,11 +4,11 @@ A simple and elegant offline bill tracking app built with Expo + React Native us
 
 Bill Manager is a mobile application built using **Expo + React Native** to help users track, manage, and analyze their daily expenses and bills. The app is lightweight, fast, and uses **`expo-sqlite`** for local offline data storage.
 
-## App Screenshots
+## App Images
 
-| Home Page                      | Add Item Page                         | Analysis Page                          |
+| App Icon                      | Adaptive Icon                         | Splash Image                          |
 | ------------------------------ | ------------------------------------- | -------------------------------------- |
-| ![Home](./images/HomePage.jpg) | ![Add Item](./images/AddItemPage.jpg) | ![Analysis](./images/AnalysisPage.jpg) |
+| ![App Icon](./assets/icon.png) | ![Adaptive Icon](./assets/adaptive-icon.png) | ![Splash Image](./assets/splash-icon.png) |
 
 ## Features
 
@@ -21,11 +21,11 @@ Bill Manager is a mobile application built using **Expo + React Native** to help
 - **Minimal & Clean UI** – Designed for clarity and ease of daily use
 - **One-tap Delete** – Manage bills without clutter or complexity
 
-## Screenshots Preview
+## Image Preview
 
-| Home                                           | Add Bill                                          | Analysis                                           |
+| App Icon                                           | Adaptive Icon                                          | Splash Image                                           |
 | ---------------------------------------------- | ------------------------------------------------- | -------------------------------------------------- |
-| <img src="./images/HomePage.jpg" width="250"/> | <img src="./images/AddItemPage.jpg" width="250"/> | <img src="./images/AnalysisPage.jpg" width="250"/> |
+| <img src="./assets/icon.png" width="250"/> | <img src="./assets/adaptive-icon.png" width="250"/> | <img src="./assets/splash-icon.png" width="250"/> |
 
 ## Tech Stack
 
